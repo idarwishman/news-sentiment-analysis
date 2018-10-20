@@ -24,9 +24,9 @@ This is small web application which given a topic or subject in the news does se
 
 It uses the following libraries:
 
-    * Vue.JS (to manage the front-end),
-    * retext-sentiment (for NLP sentiment analysis),
-    * [insert RSS feed library here]
+* Vue.JS (to manage the front-end),
+* retext-sentiment (for NLP sentiment analysis),
+* [insert RSS feed library here]
 
 Roadmap
 We plan to:
