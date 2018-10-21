@@ -22,7 +22,7 @@
             <md-button>Emoji</md-button>
           </div>
 
-
+            <md-card-expand-trigger>
             <md-button class="md-icon-button">
               <md-icon>keyboard_arrow_down</md-icon>
             </md-button>

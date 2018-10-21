@@ -1,46 +1,88 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
+    <h1>{{ msg }}</h1>    
     <div class="md-layout md-alignment-center-center">
       <div class="md-layout-item">
-<md-field>
+        <!-- Search Bar -->
+        
+    <md-field>
       <label>Search</label>
-      <md-input placeholder="Search a topic in the News" type="text" v-model="searchText" @keyup.enter="getRSSFeed"></md-input>
+      <md-input placeholder="Search a News Topic" type="text" v-model="searchText" @keyup.enter="getRSSFeed"></md-input>
     </md-field>
     <md-button class="md-raised md-primary" @click="getRSSFeed"><md-icon>search</md-icon> Search</md-button>
+    <md-button class="md-raised md-accent" @click="getRedditFeed"><md-icon>public</md-icon> Reddit</md-button>
       </div>
     </div>    
 
+    <!-- Google News Search Articles --> 
     <div class="md-layout md-gutter md-alignment-center-center" v-if="articles.length">
       <md-card class="md-elevation-1 md-with-hover" v-for="article in articles" :key="article.index">
-      <md-card-media>
-        <img src="https://s3.amazonaws.com/skinner-production/stories/featured_images/000/025/760/large/news-1.jpg?1522295632" alt="People">
-      </md-card-media>
+        <md-card-media>
+          <img src="https://s3.amazonaws.com/skinner-production/stories/featured_images/000/025/760/large/news-1.jpg?1522295632" alt="People">
+        </md-card-media>
 
-      <md-card-header>
-        <div class="md-title">{{ article.title._text | removeSourceName }}</div>
-        <!-- <div class="md-subhead">{{ article.description._text | extractImage }}</div> -->
-      </md-card-header>
+        <md-card-header>
+          <div class="md-title">{{ article.title._text }}</div>
+          <!-- <div class="md-subhead">{{ article.description._text | extractImage }}</div> -->
+        </md-card-header>
 
-      <md-card-expand>
-        <md-card-actions md-alignment="space-between">
-          <div>
-            <a :href="article.link._text" target="_blank"><md-button> Go To</md-button></a>
-            <md-button v-text="emojiSentiment(article.description._text)"></md-button>
-          </div>
+        <md-card-expand>
+          <md-card-actions md-alignment="space-between">
+            <div>
+              <a :href="article.link._text" target="_blank"><md-button> Go To</md-button></a>
+            </div>
+            <div>            
+              <md-button class="emojiSize">{{article.description._text | emojiSentiment}}</md-button>
+              <md-tooltip md-direction="bottom">😡😠😣😟🙁😐🙂😊😀😆😁</md-tooltip>
+            </div>
 
-<md-card-expand-trigger>
-            <md-button class="md-icon-button">
-              <md-icon>keyboard_arrow_down</md-icon>
-            </md-button>
-          </md-card-expand-trigger>
-        </md-card-actions>
+          <md-card-expand-trigger>
+              <md-button class="md-icon-button">
+                <md-icon>keyboard_arrow_down</md-icon>
+              </md-button>
+            </md-card-expand-trigger>
+          </md-card-actions>
 
-        <md-card-expand-content>
-          <md-card-content v-html="article.description._text"/>
-        </md-card-expand-content>
-      </md-card-expand>
-    </md-card>
+          <md-card-expand-content>
+            <md-card-content v-html="article.description._text"/>
+          </md-card-expand-content>
+        </md-card-expand>
+      </md-card>
+    </div>
+    <!-- Reddit r/news Search Articles -->
+    <div class="md-layout md-gutter md-alignment-center-center" v-if="redditArticles.length">
+      <md-card class="md-elevation-1 md-with-hover" v-for="article in redditArticles" :key="article.index">
+        <md-card-media>
+          <img src="https://s3.amazonaws.com/skinner-production/stories/featured_images/000/025/760/large/news-1.jpg?1522295632" alt="People">
+        </md-card-media>
+
+        <md-card-header>
+          <div class="md-title">{{ article.title._text }}</div>
+          <div class="md-subhead">{{ article.updated._text | dateString }}</div>
+        </md-card-header>
+
+        
+          <md-card-actions md-alignment="space-between">
+            <div>
+              <a target="_blank"><md-button> Go To</md-button></a>
+            </div>
+            <div>
+              <md-button class="emojiSize">{{article.title._text | emojiSentimentReddit}}</md-button>
+              <md-tooltip md-direction="bottom">😡😠😣😟🙁😐🙂😊😀😆😁</md-tooltip>
+            </div>
+
+          <md-card-expand-trigger>
+              <md-button class="md-icon-button">
+                <md-icon>keyboard_arrow_down</md-icon>
+              </md-button>
+            </md-card-expand-trigger>
+          </md-card-actions>
+        <md-card-expand>
+          <md-card-expand-content>
+            <md-card-content/>
+          </md-card-expand-content>
+        </md-card-expand>
+      </md-card>
     </div>
   </div>
 </template>
@@ -53,19 +95,7 @@ export default {
       msg: "Welcome to the News Sentiment Analyzer",
       searchText: "",
       articles: [],
-      emojis: [
-        "😡",
-        "😠",
-        "😣",
-        "😟",
-        "🙁",
-        "😐",
-        "🙂",
-        "😊",
-        "😀",
-        "😆",
-        "😁"
-      ],
+      redditArticles: [],
       flipped: false
     };
   },
@@ -94,6 +124,7 @@ export default {
             let art = feed.rss.channel.item;
             art.shift();
             this.articles = art;
+            this.redditArticles = [];
           })
           .catch(error => {
             console.log(error);
@@ -108,27 +139,146 @@ export default {
         '<table border="0" cellpadding="2" cellspacing="7" style="vertical-align:top;"><tr><td width="80" align="center" valign="top"><font style="font-size:85%;font-family:arial,sans-serif"><a href="http://news.google.com/news/url?sa=t&amp;fd=R&amp;ct2=us&amp;usg=AFQjCNEleYy6vfSUyTH5bV-_e9Ums6i7lg&amp;clid=c3a7d30bb8a4878e06b80cf16b898331&amp;ei=YtXLW4j8N5KO3QHkgaigBg&amp;url=https://www.aljazeera.com/programmes/upfront/2018/10/black-wealth-decrease-president-obama-181020062508463.html"><img src="//t0.gstatic.com/images?q=tbn:ANd9GcQrlfA-wrtJFZujcQaTrKg53XHuK4NmiJmFSLgEmEv32IC2zhYGIqjwwIY78WcN9SNwVACyArFv" alt="" border="1" width="80" height="80"><br><font size="-2">Aljazeera.com</font></a></font></td><td valign="top" class="j"><font style="font-size:85%;font-family:arial,sans-serif"><br><div style="padding-top:0.8em;"><img alt="" height="1" width="1"></div><div class="lh"><a href="http://news.google.com/news/url?sa=t&amp;fd=R&amp;ct2=us&amp;usg=AFQjCNEleYy6vfSUyTH5bV-_e9Ums6i7lg&amp;clid=c3a7d30bb8a4878e06b80cf16b898331&amp;ei=YtXLW4j8N5KO3QHkgaigBg&amp;url=https://www.aljazeera.com/programmes/upfront/2018/10/black-wealth-decrease-president-obama-181020062508463.html"><b>Did black wealth decrease under President <b>Obama</b>?</b></a><br><font size="-1"><b><font color="#6f6f6f">Aljazeera.com</font></b></font><br><font size="-1">Top US Democrat and likely 2020 presidential candidate, Julian Castro defends the <b>Obama</b> administration&#39;s record in the aftermath of the 2008 financial crisis, saying the situation would have been much worse under presidents like George W Bush and&nbsp;...</font><br><font size="-1" class="p"></font><br><font class="p" size="-1"><a class="p" href="http://news.google.com/news/more?ncl=d7jUqatOrsrWlwM&amp;authuser=0&amp;ned=us"><nobr><b></b></nobr></a></font></div></font></td></tr></table>';
       span.innerHTML = htmlContent.split('<div class="lh">')[1];
       console.log(span.textContent);
-    }
-  },
-  computed: {
-    emojiSentiment(htmlContent) {
-      console.log(String(htmlContent));
-
-      // const span = document.createElement("span");
-      // span.innerHTML = htmlContent.split('<div class="lh">')[1];
-      // let articleText = span.textContent;
-      // var ml = require("ml-sentiment")();
-      // let textRating = ml.classify(String(articleText));
-      // console.log(textRating);
-
-      return ""; //this.emojiSentiment[Math.floor(textRating / 2) + 5];
-    }
-  },
-  filters: {
-    removeSourceName(value) {
-      return value.toUpperCase();
     },
-    extractImage(value) {}
+    getRedditFeed() {
+      const convert = require("xml-js");
+      const axios = require("axios");
+
+      let searchText = this.searchText;
+
+      if (searchText.length > 0) {
+        axios
+          .get("https://www.reddit.com/r/news/search.rss?q=" + searchText)
+          .then(response => {
+            let redditFeed = convert.xml2json(response.data, {
+              compact: true,
+              spaces: 4
+            });
+
+            /** Reddit Schema
+              * {
+                  "author": {
+                    "name": {
+                      "_text": "/u/RyanSmith"
+                    },
+                    "uri": {
+                      "_text": "https://www.reddit.com/user/RyanSmith"
+                    }
+                  },
+                  "category": {
+                    "_attributes": {
+                      "term": "politics",
+                      "label": "r/politics"
+                    }
+                  },
+                  "content": {
+                    "_attributes": {
+                      "type": "html"
+                    },
+                    "_text": "&#32; submitted by &#32; <a href=\"https://www.reddit.com/user/RyanSmith\"> /u/RyanSmith </a> &#32; to &#32; <a href=\"https://www.reddit.com/r/politics/\"> r/politics </a> <br/> <span><a href=\"https://www.vice.com/en_us/article/zm95ka/republicans-are-outraged-about-the-deficit-they-caused\">[link]</a></span> &#32; <span><a href=\"https://www.reddit.com/r/politics/comments/9oqzik/republicans_are_outraged_about_the_deficit_they/\">[comments]</a></span>"
+                  },
+                  "id": {
+                    "_text": "t3_9oqzik"
+                  },
+                  "link": {
+                    "_attributes": {
+                      "href": "https://www.reddit.com/r/politics/comments/9oqzik/republicans_are_outraged_about_the_deficit_they/"
+                    }
+                  },
+                  "updated": {
+                    "_text": "2018-10-16T19:35:59+00:00"
+                  },
+                  "title": {
+                    "_text": "Republicans Are Outraged about the Deficit They Caused"
+                  }
+                },
+           */
+            redditFeed = JSON.parse(redditFeed);
+            this.redditArticles = redditFeed.feed.entry.filter(
+              article => article.author
+            );
+            // // Empty the main articles array
+            this.articles = [];
+          })
+          .catch(error => {
+            console.log(error);
+          });
+      } else {
+        //get top stories
+        axios
+          .get("https://www.reddit.com/r/news/.rss")
+          .then(response => {
+            let redditFeed = convert.xml2json(response.data, {
+              compact: true,
+              spaces: 4
+            });
+            this.redditArticles = redditFeed.feed.entry.filter(
+              article => article.author
+            );
+            // Empty the main articles array
+            this.articles = [];
+          })
+          .catch(error => {
+            console.log(error);
+          });
+      }
+    }
+  },
+  computed: {},
+  filters: {
+    extractImage(value) {},
+    emojiSentiment(htmlContent) {
+      let emojis = [
+        "😡",
+        "😠",
+        "😣",
+        "😟",
+        "🙁",
+        "😐",
+        "🙂",
+        "😊",
+        "😀",
+        "😆",
+        "😁"
+      ];
+      const span = document.createElement("span");
+      span.innerHTML = htmlContent.split('<div class="lh">')[1];
+      let articleText = span.textContent;
+      var ml = require("ml-sentiment")();
+      let textRating = ml.classify(String(articleText));
+      if (textRating > 10) {
+        textRating = 10;
+      } else if (textRating < -10) {
+        textRating = -10;
+      }
+      return emojis[Math.round(textRating / 2) + 5] + " " + textRating;
+    },
+    emojiSentimentReddit(title) {
+      let emojis = [
+        "😡",
+        "😠",
+        "😣",
+        "😟",
+        "🙁",
+        "😐",
+        "🙂",
+        "😊",
+        "😀",
+        "😆",
+        "😁"
+      ];
+      var ml = require("ml-sentiment")();
+      let textRating = ml.classify(String(title));
+      if (textRating > 10) {
+        textRating = 10;
+      } else if (textRating < -10) {
+        textRating = -10;
+      }
+      return emojis[Math.round(textRating / 2) + 5] + " " + textRating;
+    },
+    dateString(value) {
+      return new Date(value).toDateString();
+    }
   }
 };
 </script>
@@ -164,5 +314,23 @@ a {
 
 .md-layout-item {
   max-width: 400px;
+}
+.emojiSize {
+  font-size: 30px;
+}
+.md-tooltip {
+  background-color: white;
+  font-size: 30px;
+  margin-top: -65px !important;
+  margin-left: 75px !important;
+}
+.md-card-header {
+  height: 250px;
+}
+.md-car-title {
+  height: 300px;
+}
+.md-card.expand {
+  height: 200px;
 }
 </style>
