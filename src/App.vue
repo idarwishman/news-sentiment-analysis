@@ -1,7 +1,6 @@
 <template>
   <div id="app">
-    <img src="https://cdn.dribbble.com/users/1111912/screenshots/5427558/reactions.gif" width="400" class="homeImage">
-    
+    <img src="@/assets/emojis.gif" width="600" class="homeImage" @click="goHome">
     <!-- <img src="http://i.imgur.com/EudhFzO.gif" width="250"> -->
     <router-view/>
   </div>
@@ -9,7 +8,12 @@
 
 <script>
 export default {
-  name: "App"
+  name: "App",
+  methods: {
+    goHome() {
+      window.location.href = "/";
+    }
+  }
 };
 </script>
 
@@ -26,5 +30,6 @@ export default {
 .homeImage {
   -webkit-transform: scaleX(-1);
   transform: scaleX(-1);
+  margin-bottom: 15px;
 }
 </style>

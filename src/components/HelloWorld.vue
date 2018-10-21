@@ -1,6 +1,6 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>    
+    <h1>{{ msg }} <a href="/#/about"><md-icon>info</md-icon></a></h1>
     <div class="md-layout md-alignment-center-center">
       <div class="md-layout-item">
         <!-- Search Bar -->
@@ -9,8 +9,8 @@
       <label>Search</label>
       <md-input placeholder="Search a News Topic" type="text" v-model="searchText" @keyup.enter="getRSSFeed"></md-input>
     </md-field>
-    <md-button class="md-raised md-primary" @click="getRSSFeed"><md-icon>search</md-icon> Search</md-button>
-    <md-button class="md-raised md-accent" @click="getRedditFeed"><md-icon>public</md-icon> Reddit</md-button>
+    <md-button class="md-raised md-primary" @click="getRSSFeed"><md-icon>search</md-icon> {{ googleNewsButtonText }}</md-button>
+    <md-button class="md-raised md-accent" @click="getRedditFeed"><md-icon>public</md-icon> {{ redditNewsButtonText }}</md-button>
       </div>
     </div>    
 
@@ -35,17 +35,7 @@
               <md-button class="emojiSize">{{article.description._text | emojiSentiment}}</md-button>
               <md-tooltip md-direction="bottom">😡😠😣😟🙁😐🙂😊😀😆😁</md-tooltip>
             </div>
-
-          <md-card-expand-trigger>
-              <md-button class="md-icon-button">
-                <md-icon>keyboard_arrow_down</md-icon>
-              </md-button>
-            </md-card-expand-trigger>
           </md-card-actions>
-
-          <md-card-expand-content>
-            <md-card-content v-html="article.description._text"/>
-          </md-card-expand-content>
         </md-card-expand>
       </md-card>
     </div>
@@ -70,18 +60,7 @@
               <md-button class="emojiSize">{{article.title._text | emojiSentimentReddit}}</md-button>
               <md-tooltip md-direction="bottom">😡😠😣😟🙁😐🙂😊😀😆😁</md-tooltip>
             </div>
-
-          <md-card-expand-trigger>
-              <md-button class="md-icon-button">
-                <md-icon>keyboard_arrow_down</md-icon>
-              </md-button>
-            </md-card-expand-trigger>
           </md-card-actions>
-        <md-card-expand>
-          <md-card-expand-content>
-            <md-card-content/>
-          </md-card-expand-content>
-        </md-card-expand>
       </md-card>
     </div>
   </div>
@@ -130,15 +109,32 @@ export default {
             console.log(error);
           });
       } else {
-        alert("Please input something in the search field");
+        let encoded = encodeURI(searchText);
+        const convert = require("xml-js");
+        const axios = require("axios");
+        axios
+          .get(
+            "https://news.google.com/news/feeds?um=1&ned=us&hl=en&q=" +
+              "news" +
+              "&output=rss"
+          )
+          .then(response => {
+            let feed = convert.xml2json(response.data, {
+              compact: true,
+              spaces: 4
+            });
+
+            feed = JSON.parse(feed);
+
+            let art = feed.rss.channel.item;
+            art.shift();
+            this.articles = art;
+            this.redditArticles = [];
+          })
+          .catch(error => {
+            console.log(error);
+          });
       }
-    },
-    getSentiment() {
-      var span = document.createElement("span");
-      let htmlContent =
-        '<table border="0" cellpadding="2" cellspacing="7" style="vertical-align:top;"><tr><td width="80" align="center" valign="top"><font style="font-size:85%;font-family:arial,sans-serif"><a href="http://news.google.com/news/url?sa=t&amp;fd=R&amp;ct2=us&amp;usg=AFQjCNEleYy6vfSUyTH5bV-_e9Ums6i7lg&amp;clid=c3a7d30bb8a4878e06b80cf16b898331&amp;ei=YtXLW4j8N5KO3QHkgaigBg&amp;url=https://www.aljazeera.com/programmes/upfront/2018/10/black-wealth-decrease-president-obama-181020062508463.html"><img src="//t0.gstatic.com/images?q=tbn:ANd9GcQrlfA-wrtJFZujcQaTrKg53XHuK4NmiJmFSLgEmEv32IC2zhYGIqjwwIY78WcN9SNwVACyArFv" alt="" border="1" width="80" height="80"><br><font size="-2">Aljazeera.com</font></a></font></td><td valign="top" class="j"><font style="font-size:85%;font-family:arial,sans-serif"><br><div style="padding-top:0.8em;"><img alt="" height="1" width="1"></div><div class="lh"><a href="http://news.google.com/news/url?sa=t&amp;fd=R&amp;ct2=us&amp;usg=AFQjCNEleYy6vfSUyTH5bV-_e9Ums6i7lg&amp;clid=c3a7d30bb8a4878e06b80cf16b898331&amp;ei=YtXLW4j8N5KO3QHkgaigBg&amp;url=https://www.aljazeera.com/programmes/upfront/2018/10/black-wealth-decrease-president-obama-181020062508463.html"><b>Did black wealth decrease under President <b>Obama</b>?</b></a><br><font size="-1"><b><font color="#6f6f6f">Aljazeera.com</font></b></font><br><font size="-1">Top US Democrat and likely 2020 presidential candidate, Julian Castro defends the <b>Obama</b> administration&#39;s record in the aftermath of the 2008 financial crisis, saying the situation would have been much worse under presidents like George W Bush and&nbsp;...</font><br><font size="-1" class="p"></font><br><font class="p" size="-1"><a class="p" href="http://news.google.com/news/more?ncl=d7jUqatOrsrWlwM&amp;authuser=0&amp;ned=us"><nobr><b></b></nobr></a></font></div></font></td></tr></table>';
-      span.innerHTML = htmlContent.split('<div class="lh">')[1];
-      console.log(span.textContent);
     },
     getRedditFeed() {
       const convert = require("xml-js");
@@ -212,6 +208,9 @@ export default {
               compact: true,
               spaces: 4
             });
+
+            redditFeed = JSON.parse(redditFeed);
+
             this.redditArticles = redditFeed.feed.entry.filter(
               article => article.author
             );
@@ -224,7 +223,24 @@ export default {
       }
     }
   },
-  computed: {},
+  computed: {
+    googleNewsButtonText() {
+      let searchText = this.searchText;
+      if (searchText.length > 0) {
+        return "G-News Search";
+      } else {
+        return "Top Stories";
+      }
+    },
+    redditNewsButtonText() {
+      let searchText = this.searchText;
+      if (searchText.length > 0) {
+        return "Reddit Search";
+      } else {
+        return "Reddit News";
+      }
+    }
+  },
   filters: {
     extractImage(value) {},
     emojiSentiment(htmlContent) {
@@ -327,10 +343,10 @@ a {
 .md-card-header {
   height: 250px;
 }
-.md-car-title {
-  height: 300px;
-}
-.md-card.expand {
+.md-title {
   height: 200px;
+}
+.md-card-actions {
+  padding-bottom: 15px;
 }
 </style>
