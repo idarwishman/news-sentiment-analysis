@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <img src="@/assets/emojis.gif" width="600" class="homeImage" @click="goHome">
+    <img src="https://i.imgur.com/QWTLQYi.gif" width="600" class="homeImage" @click="goHome">
     <!-- <img src="http://i.imgur.com/EudhFzO.gif" width="250"> -->
     <router-view/>
   </div>
