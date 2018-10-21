@@ -54,7 +54,7 @@
         
           <md-card-actions md-alignment="space-between">
             <div>
-              <a target="_blank"><md-button> Go To</md-button></a>
+              <a target="_blank"><md-button></md-button></a>
             </div>
             <div>
               <md-button class="emojiSize">{{article.title._text | emojiSentimentReddit}}</md-button>
