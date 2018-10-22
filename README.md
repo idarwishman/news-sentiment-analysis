@@ -24,13 +24,13 @@ This is small web application which given a topic or subject in the news does se
 
 It uses the following libraries:
 
-* Vue.JS (to manage the front-end),
-* retext-sentiment (for NLP sentiment analysis),
-* [insert RSS feed library here]
+- Vue.JS (to manage the front-end),
+- retext-sentiment (for NLP sentiment analysis),
+- [insert RSS feed library here]
 
 Roadmap
 We plan to:
 
-Connect it to Firebase for authentication and data storage
-Provide user with feed of news sources they are interested in
-Optimize search
+- Connect it to Firebase for authentication and data storage
+- Provide user with feed of news sources they are interested in
+- Chart data of sentiment on topic across media and for each media source over time

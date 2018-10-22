@@ -84,13 +84,15 @@ export default {
 
       if (searchText.length > 0) {
         let encoded = encodeURI(searchText);
+        let url = "https://cors-anywhere.herokuapp.com/https://news.google.com/news/feeds?um=1&ned=us&hl=en&q=" +
+              encoded +
+              "&output=rss";        
+        
         const convert = require("xml-js");
         const axios = require("axios");
         axios
           .get(
-            "https://news.google.com/news/feeds?um=1&ned=us&hl=en&q=" +
-              encoded +
-              "&output=rss"
+              url
           )
           .then(response => {
             let feed = convert.xml2json(response.data, {
@@ -114,9 +116,7 @@ export default {
         const axios = require("axios");
         axios
           .get(
-            "https://news.google.com/news/feeds?um=1&ned=us&hl=en&q=" +
-              "news" +
-              "&output=rss"
+            "https://cors-anywhere.herokuapp.com/https://news.google.com/news/feeds?um=1&ned=us&hl=en&q=news&output=rss"
           )
           .then(response => {
             let feed = convert.xml2json(response.data, {
@@ -144,7 +144,7 @@ export default {
 
       if (searchText.length > 0) {
         axios
-          .get("https://www.reddit.com/r/news/search.rss?q=" + searchText)
+          .get("https://cors-anywhere.herokuapp.com/https://www.reddit.com/r/news/search.rss?q=" + searchText)
           .then(response => {
             let redditFeed = convert.xml2json(response.data, {
               compact: true,
@@ -202,7 +202,7 @@ export default {
       } else {
         //get top stories
         axios
-          .get("https://www.reddit.com/r/news/.rss")
+          .get("https://cors-anywhere.herokuapp.com/https://www.reddit.com/r/news/.rss")
           .then(response => {
             let redditFeed = convert.xml2json(response.data, {
               compact: true,
@@ -221,7 +221,7 @@ export default {
             console.log(error);
           });
       }
-    }
+    },
   },
   computed: {
     googleNewsButtonText() {

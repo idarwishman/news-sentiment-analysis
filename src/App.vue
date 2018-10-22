@@ -1,7 +1,6 @@
 <template>
   <div id="app">
-    <img src="https://i.imgur.com/QWTLQYi.gif" width="600" class="homeImage" @click="goHome">
-    <!-- <img src="http://i.imgur.com/EudhFzO.gif" width="250"> -->
+    <img src="https://s3.amazonaws.com/hoodflix/news-sentiment-analysis/QWTLQYi.gif" width="600" class="homeImage" @click="goHome">
     <router-view/>
   </div>
 </template>
