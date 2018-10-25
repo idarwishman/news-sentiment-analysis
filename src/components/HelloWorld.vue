@@ -9,60 +9,65 @@
       <label>Search</label>
       <md-input placeholder="Search a News Topic" type="text" v-model="searchText" @keyup.enter="getRSSFeed"></md-input>
     </md-field>
-    <md-button class="md-raised md-primary" @click="getRSSFeed"><md-icon>search</md-icon> {{ googleNewsButtonText }}</md-button>
-    <md-button class="md-raised md-accent" @click="getRedditFeed"><md-icon>public</md-icon> {{ redditNewsButtonText }}</md-button>
+    <md-button class="md-raised md-primary" @click="getRSSFeed" :disabled="searching"><md-icon>search</md-icon> {{ googleNewsButtonText }}</md-button>
+    <md-button class="md-raised md-accent" @click="getRedditFeed" :disabled="searching"><md-icon>public</md-icon> {{ redditNewsButtonText }}</md-button>
+    <!-- Spinners -->
+    <md-progress-spinner class="md-accent" md-mode="indeterminate" v-if="redditArticles.length === 0 && searchingReddit"></md-progress-spinner>
+    <md-progress-spinner md-mode="indeterminate" v-if="articles.length === 0 && searching"></md-progress-spinner>
       </div>
     </div>    
 
+    <div id="articles">
     <!-- Google News Search Articles --> 
-    <div class="md-layout md-gutter md-alignment-center-center" v-if="articles.length">
-      <md-card class="md-elevation-1 md-with-hover" v-for="article in articles" :key="article.index">
-        <md-card-media>
-          <img src="https://s3.amazonaws.com/skinner-production/stories/featured_images/000/025/760/large/news-1.jpg?1522295632" alt="People">
-        </md-card-media>
+        <div class="md-layout md-gutter md-alignment-center-center" v-if="articles.length">
+          <md-card class="md-elevation-1 md-with-hover" v-for="article in articles" :key="article.index">
+            <md-card-media>
+              <img src="https://s3.amazonaws.com/skinner-production/stories/featured_images/000/025/760/large/news-1.jpg?1522295632" alt="People">
+            </md-card-media>
 
-        <md-card-header>
-          <div class="md-title">{{ article.title._text }}</div>
-          <!-- <div class="md-subhead">{{ article.description._text | extractImage }}</div> -->
-        </md-card-header>
+            <md-card-header>
+              <div class="md-title">{{ article.title._text }}</div>
+              <!-- <div class="md-subhead">{{ article.description._text | extractImage }}</div> -->
+            </md-card-header>
 
-        <md-card-expand>
-          <md-card-actions md-alignment="space-between">
-            <div>
-              <a :href="article.link._text" target="_blank"><md-button> Go To</md-button></a>
-            </div>
-            <div>            
-              <md-button class="emojiSize">{{article.description._text | emojiSentiment}}</md-button>
-              <md-tooltip md-direction="bottom">😡😠😣😟🙁😐🙂😊😀😆😁</md-tooltip>
-            </div>
-          </md-card-actions>
-        </md-card-expand>
-      </md-card>
-    </div>
-    <!-- Reddit r/news Search Articles -->
-    <div class="md-layout md-gutter md-alignment-center-center" v-if="redditArticles.length">
-      <md-card class="md-elevation-1 md-with-hover" v-for="article in redditArticles" :key="article.index">
-        <md-card-media>
-          <img src="https://s3.amazonaws.com/skinner-production/stories/featured_images/000/025/760/large/news-1.jpg?1522295632" alt="People">
-        </md-card-media>
+            <md-card-expand>
+              <md-card-actions md-alignment="space-between">
+                <div>
+                  <a :href="article.link._text" target="_blank"><md-button> Go To</md-button></a>
+                </div>
+                <div>            
+                  <md-button class="emojiSize">{{article.description._text | emojiSentiment}}</md-button>
+                  <md-tooltip md-direction="bottom">😡😠😣😟🙁😐🙂😊😀😆😁</md-tooltip>
+                </div>
+              </md-card-actions>
+            </md-card-expand>
+          </md-card>
+        </div>
+        <!-- Reddit r/news Search Articles -->
+        <div class="md-layout md-gutter md-alignment-center-center" v-if="redditArticles.length">
+          <md-card class="md-elevation-1 md-with-hover" v-for="article in redditArticles" :key="article.index">
+            <md-card-media>
+              <img src="https://s3.amazonaws.com/skinner-production/stories/featured_images/000/025/760/large/news-1.jpg?1522295632" alt="People">
+            </md-card-media>
 
-        <md-card-header>
-          <div class="md-title">{{ article.title._text }}</div>
-          <div class="md-subhead">{{ article.updated._text | dateString }}</div>
-        </md-card-header>
+            <md-card-header>
+              <div class="md-title">{{ article.title._text }}</div>
+              <div class="md-subhead">{{ article.updated._text | dateString }}</div>
+            </md-card-header>
 
-        
-          <md-card-actions md-alignment="space-between">
-            <div>
-              <a target="_blank"><md-button></md-button></a>
-            </div>
-            <div>
-              <md-button class="emojiSize">{{article.title._text | emojiSentimentReddit}}</md-button>
-              <md-tooltip md-direction="bottom">😡😠😣😟🙁😐🙂😊😀😆😁</md-tooltip>
-            </div>
-          </md-card-actions>
-      </md-card>
-    </div>
+            
+              <md-card-actions md-alignment="space-between">
+                <div>
+                  <a target="_blank"><md-button></md-button></a>
+                </div>
+                <div>
+                  <md-button class="emojiSize">{{article.title._text | emojiSentimentReddit}}</md-button>
+                  <md-tooltip md-direction="bottom">😡😠😣😟🙁😐🙂😊😀😆😁</md-tooltip>
+                </div>
+              </md-card-actions>
+          </md-card>
+        </div>
+    </div>    
   </div>
 </template>
 
@@ -75,25 +80,34 @@ export default {
       searchText: "",
       articles: [],
       redditArticles: [],
-      flipped: false
+      searching: false,
+      searchingReddit: false
     };
   },
   methods: {
     getRSSFeed() {
+      location.hash = "#articles";
+
+      // clear past articles
+      this.articles = [];
+      this.redditArticles = [];
+
+      this.searching = true; // the user has in fact searched
+      this.searchingReddit = false;
+
       let searchText = this.searchText;
 
       if (searchText.length > 0) {
         let encoded = encodeURI(searchText);
-        let url = "https://cors-anywhere.herokuapp.com/https://news.google.com/news/feeds?um=1&ned=us&hl=en&q=" +
-              encoded +
-              "&output=rss";        
-        
+        let url =
+          "https://cors-anywhere.herokuapp.com/https://news.google.com/news/feeds?um=1&ned=us&hl=en&q=" +
+          encoded +
+          "&output=rss";
+
         const convert = require("xml-js");
         const axios = require("axios");
         axios
-          .get(
-              url
-          )
+          .get(url)
           .then(response => {
             let feed = convert.xml2json(response.data, {
               compact: true,
@@ -106,8 +120,11 @@ export default {
             art.shift();
             this.articles = art;
             this.redditArticles = [];
+
+            this.searching = false;
           })
           .catch(error => {
+            this.searching = false;
             console.log(error);
           });
       } else {
@@ -130,21 +147,36 @@ export default {
             art.shift();
             this.articles = art;
             this.redditArticles = [];
+
+            this.searching = false;
           })
           .catch(error => {
+            this.searching = false;
             console.log(error);
           });
       }
     },
     getRedditFeed() {
+      location.hash = "#articles";
+
+      // clear past articles
+      this.articles = [];
+      this.redditArticles = [];
+
       const convert = require("xml-js");
       const axios = require("axios");
+
+      this.searchingReddit = true; // the user has in fact searched
+      this.searching = false; // the user has in fact searched
 
       let searchText = this.searchText;
 
       if (searchText.length > 0) {
         axios
-          .get("https://cors-anywhere.herokuapp.com/https://www.reddit.com/r/news/search.rss?q=" + searchText)
+          .get(
+            "https://cors-anywhere.herokuapp.com/https://www.reddit.com/r/news/search.rss?q=" +
+              searchText
+          )
           .then(response => {
             let redditFeed = convert.xml2json(response.data, {
               compact: true,
@@ -195,14 +227,19 @@ export default {
             );
             // // Empty the main articles array
             this.articles = [];
+
+            this.searchingReddit = false;
           })
           .catch(error => {
+            this.searchingReddit = false;
             console.log(error);
           });
       } else {
         //get top stories
         axios
-          .get("https://cors-anywhere.herokuapp.com/https://www.reddit.com/r/news/.rss")
+          .get(
+            "https://cors-anywhere.herokuapp.com/https://www.reddit.com/r/news/.rss"
+          )
           .then(response => {
             let redditFeed = convert.xml2json(response.data, {
               compact: true,
@@ -216,12 +253,15 @@ export default {
             );
             // Empty the main articles array
             this.articles = [];
+
+            this.searchingReddit = false;
           })
           .catch(error => {
+            this.searchingReddit = false;
             console.log(error);
           });
       }
-    },
+    }
   },
   computed: {
     googleNewsButtonText() {
@@ -348,5 +388,8 @@ a {
 }
 .md-card-actions {
   padding-bottom: 15px;
+}
+.md-progress-spinner {
+  margin: 24px;
 }
 </style>
