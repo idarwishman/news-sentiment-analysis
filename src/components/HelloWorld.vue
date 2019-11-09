@@ -1,50 +1,75 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }} <a href="/#/about"><md-icon>info</md-icon></a></h1>
+    <h1>
+      {{ msg }}
+      <a href="/#/about">
+        <md-icon>info</md-icon>
+      </a>
+    </h1>
     <div class="md-layout md-alignment-center-center">
       <div class="md-layout-item">
         <!-- Search Bar -->
-        
-    <md-field>
-      <label>Search</label>
-      <md-input placeholder="Search a News Topic" type="text" v-model="searchText" @keyup.enter="getRSSFeed(false)"></md-input>
-    </md-field>
-    <md-button class="md-raised md-primary" @click="getRSSFeed(false)" :disabled="searching"><md-icon>search</md-icon> {{ googleNewsButtonText }}</md-button>
-    <md-button class="md-raised md-accent" @click="getRSSFeed(true)" :disabled="searching"><md-icon>public</md-icon> {{ redditNewsButtonText }}</md-button>
-    <md-progress-spinner md-mode="indeterminate" v-if="articles.length === 0 && searching"></md-progress-spinner>
+
+        <md-field>
+          <label>Search</label>
+          <md-input
+            placeholder="Search a News Topic"
+            type="text"
+            v-model="searchText"
+            @keyup.enter="getRSSFeed(false)"
+          ></md-input>
+        </md-field>
+        <md-button class="md-raised md-primary" @click="getRSSFeed(false)" :disabled="searching">
+          <md-icon>search</md-icon>
+          {{ googleNewsButtonText }}
+        </md-button>
+        <md-button class="md-raised md-accent" @click="getRSSFeed(true)" :disabled="searching">
+          <md-icon>public</md-icon>
+          {{ redditNewsButtonText }}
+        </md-button>
+        <md-progress-spinner md-mode="indeterminate" v-if="articles.length === 0 && searching"></md-progress-spinner>
       </div>
-    </div>    
+    </div>
 
     <div v-if="articles.length > 0">
-      <h2> {{ findingsMsg }} </h2>
+      <h2>{{ findingsMsg }}</h2>
     </div>
     <div id="articles">
-    <!-- Google News Search Articles --> 
-        <div class="md-layout md-gutter md-alignment-center-center" v-if="articles.length">
-          <md-card class="md-elevation-1 md-with-hover" v-for="article in articles" :key="article.index">
-            <md-card-media>
-              <img src="https://s3.amazonaws.com/skinner-production/stories/featured_images/000/025/760/large/news-1.jpg?1522295632" alt="People">
-            </md-card-media>
+      <!-- Google News Search Articles -->
+      <div class="md-layout md-gutter md-alignment-center-center" v-if="articles.length">
+        <md-card
+          class="md-elevation-1 md-with-hover"
+          v-for="article in articles"
+          :key="article.index"
+        >
+          <md-card-media>
+            <img
+              src="https://s3.amazonaws.com/skinner-production/stories/featured_images/000/025/760/large/news-1.jpg?1522295632"
+              alt="People"
+            />
+          </md-card-media>
 
-            <md-card-header>
-              <div class="md-title">{{ article.title }}</div>
-              <div class="md-subhead">{{ article.pubDate }}</div>
-            </md-card-header>
+          <md-card-header>
+            <div class="md-title">{{ article.title }}</div>
+            <div class="md-subhead">{{ article.pubDate }}</div>
+          </md-card-header>
 
-            <md-card-expand>
-              <md-card-actions md-alignment="space-between">
-                <div>
-                  <a :href="article.link" target="_blank"><md-button> Go To</md-button></a>
-                </div>
-                <div>            
-                  <md-button class="emojiSize">{{ article.sentiment[1] }} {{ article.sentiment[0] }}</md-button>
-                  <md-tooltip md-direction="bottom">😡😠😣😟🙁😐🙂😊😀😆😁</md-tooltip>
-                </div>
-              </md-card-actions>
-            </md-card-expand>
-          </md-card>
-        </div>
-    </div>    
+          <md-card-expand>
+            <md-card-actions md-alignment="space-between">
+              <div>
+                <a :href="article.link" target="_blank">
+                  <md-button>Go To</md-button>
+                </a>
+              </div>
+              <div>
+                <md-button class="emojiSize">{{ article.sentiment[1] }} {{ article.sentiment[0] }}</md-button>
+                <md-tooltip md-direction="bottom">😡😠😣😟🙁😐🙂😊😀😆😁</md-tooltip>
+              </div>
+            </md-card-actions>
+          </md-card-expand>
+        </md-card>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -130,7 +155,7 @@ export default {
                 title: article.title._text,
                 link: article.link._text,
                 pubDate: new Date(article.pubDate._text).toLocaleString(),
-                sentiment: this.getSentiment(article.description._text, false)
+                sentiment: this.getSentiment(article.title._text, false)
               });
             });
 
@@ -163,12 +188,12 @@ export default {
     getSentiment(htmlContent, fromReddit) {
       let articleText = htmlContent;
       if (!fromReddit) {
-        const span = document.createElement("span");
-        span.innerHTML = htmlContent.split('<div class="lh">')[1];
-        articleText = span.textContent;
+        articleText = articleText.split("-")[0].trim();
       }
       var ml = require("ml-sentiment")();
       let textRating = ml.classify(String(articleText));
+      console.log(textRating);
+
       if (textRating > 10) {
         textRating = 10;
       } else if (textRating < -10) {
